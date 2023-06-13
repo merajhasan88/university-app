@@ -122,11 +122,13 @@ layoutG->setVerticalSpacing(50);
         qDebug() << "Unique department list is:" << uniquedepList[i];
        }
         int start_y = 10;
+        //ViewFacultyCustomSqlModel *modelLoop = new ViewFacultyCustomSqlModel(0,db);
        for (int i = 0; i< uniquedepList.size();i++){
            QString match_dept = uniquedepList[i];
-           ViewFacultyCustomSqlModel *modelLoop = new ViewFacultyCustomSqlModel(0,db);
-               modelLoop->setTable("employee");
-            modelLoop->select();
+           //ViewFacultyCustomSqlModel *modelLoop = new ViewFacultyCustomSqlModel(0,db);
+           QSqlTableModel *modelLoop = new QSqlTableModel;
+           modelLoop->setTable("employee");
+           modelLoop->select();
            QString querystring = QString("department = %1%2%3").arg("'").arg(uniquedepList[i]).arg("'");
            qDebug() << querystring;
            modelLoop->setFilter(querystring);
@@ -190,6 +192,7 @@ layoutG->setVerticalSpacing(50);
 //                                  view->setEditTriggers(view->editTriggers().setFlag();
 //                                  QModelIndexList tableIndexes = view->selectionModel()->selectedRows();
                                    view->selectRow(i);
+
                                    //qDebug() << "Current Index is:" << view->currentIndex();
                                    //qDebug() << "Edit Trigger of view is:" << view->editTriggers();
                                    //Change this flag to set only that cell editable
@@ -222,8 +225,14 @@ layoutG->setVerticalSpacing(50);
 //                                  });
 
                                   button_dynamic->setText("Edit");
-                                  modelLoop->submitAll();
-                                  view->setEditTriggers(QAbstractItemView::NoEditTriggers);
+                                  if(view->currentIndex().row() == i){
+                                      modelLoop->submitAll();
+                                      view->setEditTriggers(QAbstractItemView::NoEditTriggers);
+                                  }
+                                  else{
+                                      QMessageBox::warning(this,tr("Error"),tr("Clicked on wrong save button"),QMessageBox::Retry);
+                                  }
+
                               }
                           });
 
