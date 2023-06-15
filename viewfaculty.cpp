@@ -31,9 +31,14 @@ cout<<"Constructor called"<<endl;
     QGridLayout *layoutG = new QGridLayout();
 
     QGroupBox *boxTables = new QGroupBox(contentWidget);
-    boxTables->setFixedWidth(475);
-
-
+    boxTables->setFixedWidth(555);
+    boxTables->setObjectName("coloredBorder");
+    boxTables->setStyleSheet("QGroupBox#coloredBorder{border: 5px solid black;}");
+    //QFrame *frame = new QFrame;
+    //frame->setLayout(boxTables);
+    //frame->setObjectName("mainBorder");
+    //this->setStyleSheet("QFrame {border: 5px solid black;}");
+    //frame->setStyleSheet("frame {border: 5px solid black;}");
     //QHBoxLayout *layoutH = new QHBoxLayout(boxTables);
     QVBoxLayout *layoutV = new QVBoxLayout(boxTables);
     //layoutH->addLayout(layoutV);
@@ -144,13 +149,15 @@ layoutG->setVerticalSpacing(50);
            modelLoop->setHeaderData(2, Qt::Horizontal, QObject::tr("Department"));
            QTableView *view = new QTableView;
 
-          /* label->setParent(ui->scrollArea);
+            /* label->setParent(ui->scrollArea);
            view->setParent(ui->scrollArea);*/ //binds newly created table to the current view. Fix its size tomorrow.
            QVBoxLayout *layoutVButtons = new QVBoxLayout;
+           QVBoxLayout *layoutVButtonsDelete = new QVBoxLayout;
            QHBoxLayout *layoutMergeWithTables = new QHBoxLayout;
            layoutMergeWithTables->addWidget(view);
            //layoutVButtons->addLayout(layoutMergeWithTables);
            layoutMergeWithTables->addLayout(layoutVButtons);
+           layoutMergeWithTables->addLayout(layoutVButtonsDelete);
            //layoutH->addLayout(layoutVButtons);
 
            // label->setParent(contentWidget);
@@ -167,6 +174,9 @@ layoutG->setVerticalSpacing(50);
               view->setColumnWidth(1,150);
               view->setGeometry(30,start_y+10+label->geometry().height(),365,200);
 //setGeometry isnt working
+
+              view->setStyleSheet("QHeaderView::section {background-color:black; color: white}");
+               view->verticalHeader()->hide();
              // view->setStyleSheet("padding-left: 20px; padding-top: 50px;"
                //         );
               layoutV->addWidget(label);
@@ -174,12 +184,18 @@ layoutG->setVerticalSpacing(50);
                layoutV->addLayout(layoutMergeWithTables);
               for(int i = 0; i< dynamic_rows;i++){
                  QPushButton *button_dynamic = new QPushButton;
+                 QPushButton *button_dynamic_delete = new QPushButton;
+
                  //get pointer to the button
                   //button_dynamic->setText(QString ("Edit %1").arg(i));
                   button_dynamic->setText("Edit");
                   layoutVButtons->addWidget(button_dynamic);
                   layoutVButtons->setAlignment(Qt::AlignTop);
                   layoutVButtons->setContentsMargins(0,25,0,0);
+                  button_dynamic_delete->setText("Delete");
+                  layoutVButtonsDelete->addWidget(button_dynamic_delete);
+                  layoutVButtonsDelete->setAlignment(Qt::AlignTop);
+                  layoutVButtonsDelete->setContentsMargins(0,25,0,0);
                   connect(button_dynamic,&QPushButton::clicked,[button_dynamic,view,i,modelLoop, this](){
                               if(button_dynamic->text()=="Edit"){
                                   QModelIndex tableIndex = view->model()->index(i,0,QModelIndex());
@@ -235,7 +251,23 @@ layoutG->setVerticalSpacing(50);
 
                               }
                           });
+                  connect(button_dynamic_delete,&QPushButton::clicked,[button_dynamic_delete,button_dynamic,view,i,modelLoop, this,layoutVButtons,layoutVButtonsDelete](){
+                      if(QMessageBox::question(this,tr("System:"),tr("Are you sure you want to delete this entry?"),QMessageBox::Yes,QMessageBox::No )==QMessageBox::Yes){
+                          modelLoop->setEditStrategy(QSqlTableModel::OnManualSubmit);//apply all these strategies only to a particular row and particular columns
+                          view->setSelectionMode(QAbstractItemView::SingleSelection);//modify these two
+                          view->setSelectionBehavior(QAbstractItemView::SelectItems);
+                           view->selectRow(i);
+                           view->setEditTriggers(QAbstractItemView::SelectedClicked);
+                        QModelIndex tableIndexes = view->model()->index(i,0,QModelIndex());//this should only return that particular cell. So 0, should be replaced by that number //also why not use modelLoop directly instead of view->model()?
+                        bool is_row_removed = modelLoop->removeRow(tableIndexes.row());
+                        modelLoop->submitAll();
+                        view->setEditTriggers(QAbstractItemView::NoEditTriggers);
+                        button_dynamic->deleteLater();
+                        button_dynamic_delete->deleteLater();
+                        qDebug()<<"Is row removed?: "<<is_row_removed;
+                      }
 
+                  });
 
               }
 //ui->viewFacultybBckButton->setParent(ui->scrollArea);
