@@ -57,19 +57,21 @@ layoutG->setVerticalSpacing(50);
     //layoutH->setSpacing(50);
 //    layoutH->setContentsMargins(30,20,50,50);
     connect(ui->viewFacultybBckButton, SIGNAL(clicked()),this, SLOT(close()));
-    QSqlDatabase db = QSqlDatabase::addDatabase("QMYSQL");
-    db.setHostName("localhost");
-    db.setDatabaseName("uniapp");
-    db.setUserName("meraj");
-    db.setPassword("meraj346");
-    bool ok = db.open();
+    //QSqlDatabase db_viewFaculty = QSqlDatabase::database();
+    QSqlDatabase db_viewFaculty = QSqlDatabase::addDatabase("QMYSQL");
+
+    db_viewFaculty.setHostName("localhost");
+    db_viewFaculty.setDatabaseName("uniapp");
+    db_viewFaculty.setUserName("meraj");
+    db_viewFaculty.setPassword("meraj346");
+    bool ok = db_viewFaculty.open();
 
     if(!ok){
     //    qDebug() << "Failed to connect to root mysql admin";
-        qDebug()<< db.lastError();
+        qDebug()<< db_viewFaculty.lastError();
     }
     else{
-       qDebug() << "Connected to mysql admin";
+       qDebug() << "Connected to mysql admin in viewfaculty.cpp";
     }
 //Delete and create below
 //    QSqlQuery query;
