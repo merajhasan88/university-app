@@ -58,21 +58,22 @@ layoutG->setVerticalSpacing(50);
 //    layoutH->setContentsMargins(30,20,50,50);
     connect(ui->viewFacultybBckButton, SIGNAL(clicked()),this, SLOT(close()));
     //QSqlDatabase db_viewFaculty = QSqlDatabase::database();
-    QSqlDatabase db_viewFaculty = QSqlDatabase::addDatabase("QMYSQL");
+    QSqlDatabase db_viewfaculty = QSqlDatabase::database();
+    //    db.setHostName("localhost");
+    //    db.setDatabaseName("uniapp");
+    //    db.setUserName("postgres");
+    //    db.setPassword("meraj346");
 
-    db_viewFaculty.setHostName("localhost");
-    db_viewFaculty.setDatabaseName("uniapp");
-    db_viewFaculty.setUserName("meraj");
-    db_viewFaculty.setPassword("meraj346");
-    bool ok = db_viewFaculty.open();
+    bool ok = db_viewfaculty.open();
 
     if(!ok){
-    //    qDebug() << "Failed to connect to root mysql admin";
-        qDebug()<< db_viewFaculty.lastError();
+        //    qDebug() << "Failed to connect to root mysql admin";
+        qDebug()<< db_viewfaculty.lastError();
     }
     else{
-       qDebug() << "Connected to mysql admin in viewfaculty.cpp";
+        qDebug() << "Connected to postgresql in viewfaculty.cpp";
     }
+
 //Delete and create below
 //    QSqlQuery query;
 //        query.exec("DELETE FROM employee WHERE id = 1001");

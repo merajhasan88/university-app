@@ -4,12 +4,35 @@
 #include <QtWidgets>
 #include <QFileSystemModel>
 #include <QCloseEvent>
+#include <QDebug>
+#include <QSqlDatabase>
+#include <QSql>
+#include <QSqlQueryModel>
+#include <QSqlQuery>
+#include <QSqlError>
+#include <QSqlDriver>
 
 AddCourse::AddCourse(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::AddCourse)
 {
     ui->setupUi(this);
+    QSqlDatabase db_addCourse = QSqlDatabase::addDatabase("QPSQL");
+
+    db_addCourse.setHostName("localhost");
+    db_addCourse.setDatabaseName("uniapp");
+    db_addCourse.setUserName("postgres");
+    db_addCourse.setPassword("meraj346");
+    bool ok = db_addCourse.open();
+
+    if(!ok){
+        //    qDebug() << "Failed to connect to root mysql admin";
+        qDebug()<< db_addCourse.lastError();
+    }
+    else{
+        qDebug() << "Connected to postgresql admin in addcourse.cpp";
+    }
+
     ui->lineEdit_details->setFixedWidth(200);
         ui->label_details->setFixedWidth(93);
         ui->label->setFixedWidth(93);
