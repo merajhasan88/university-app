@@ -11,6 +11,7 @@
 #include <QSqlQuery>
 #include <QSqlError>
 #include <QSqlDriver>
+#include <QSqlTableModel>
 
 AddCourse::AddCourse(QWidget *parent) :
     QMainWindow(parent),
@@ -32,6 +33,23 @@ AddCourse::AddCourse(QWidget *parent) :
     else{
         qDebug() << "Connected to postgresql admin in addcourse.cpp";
     }
+
+    //QSqlTableModel *model = new QSqlTableModel;
+    //model->setTable();
+
+    //    QSqlQuery query;
+    //        query.exec("DELETE FROM employee WHERE id = 1001");
+    //    QSqlQuery query;
+    //    query.exec("INSERT INTO employee (id, name, department)"
+    //               "VALUES (1001, 'Meraj Hasan', 'Electrical')");
+    //or
+    //    query.prepare("INSERT INTO employee (id, name, department) "
+    //                      "VALUES (?, ?, ?)");
+    //        query.addBindValue(1002);
+    //        query.addBindValue("Zakariyya Hasan");
+    //        query.addBindValue("Computer");
+    //        query.exec();
+
 
     ui->lineEdit_details->setFixedWidth(200);
         ui->label_details->setFixedWidth(93);
@@ -159,7 +177,18 @@ void AddCourse::on_submitButtonDetails_clicked()
         ui->label_details->setText("CGPA:");
         ui->lineEdit_details->clear();
         }
-        if(col == 5){
+        if(col==5){
+        QString fileName = QFileDialog::getOpenFileName(this, tr("Open Image"));
+        if (!fileName.isEmpty()) {
+            QImage tempImage(fileName);
+            if (tempImage.isNull()) {
+                QMessageBox::information(this, tr("Load Warning"), tr("Cannot load %1.").arg(fileName));
+                return;
+            }
+
+        }
+        }
+        if(col == 6){
         ui->label_details->setText("Semester:");
         ui->lineEdit_details->clear();
         ui->doneButton->setDisabled(false);
@@ -173,6 +202,23 @@ void AddCourse::on_submitButtonDetails_clicked()
 }
 
 void AddCourse::setTitle(){
+        QSqlQuery query_create;
+        //parse the string here. Fill spaces with underscore and everything in toLower
+        QString query_string = QString("CREATE TABLE IF NOT EXISTS %1(id integer NOT NULL, name VARCHAR(200) NOT NULL, semester VARCHAR(200) NOT NULL, department VARCHAR(200) NOT NULL, cgpa NUMERIC NOT NULL, photo BYTEA NOT NULL)").arg(ui->lineEdit->text());
+        query_create.exec(query_string);
+        //    QSqlQuery query;
+        //        query.exec("DELETE FROM employee WHERE id = 1001");
+        //    QSqlQuery query;
+        //    query.exec("INSERT INTO employee (id, name, department)"
+        //               "VALUES (1001, 'Meraj Hasan', 'Electrical')");
+        //or
+        //    query.prepare("INSERT INTO employee (id, name, department) "
+        //                      "VALUES (?, ?, ?)");
+        //        query.addBindValue(1002);
+        //        query.addBindValue("Zakariyya Hasan");
+        //        query.addBindValue("Computer");
+        //        query.exec();
+
     ui->label_title->setText(ui->lineEdit->text());
 }
 
