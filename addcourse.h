@@ -17,6 +17,13 @@ class AddCourse : public QMainWindow
     Q_OBJECT
 
 public:
+    QString table_name="";
+    QString id = "";
+    QString name = "";
+    QString semester = "";
+    QString department = "";
+    QString cgpa = "";
+    QByteArray image_bytes;
     int col = 0;
        int row = 0;
        int sizex = 5;
