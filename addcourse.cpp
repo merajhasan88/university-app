@@ -150,6 +150,7 @@ void AddCourse::on_submitButtonID_clicked()
     //model->insertRow(row,item);
     addColToTableView(searchString,row-1);
     id = searchString;
+    ui->lineEdit_ID->clear();
     //col++;
 
 }
@@ -162,6 +163,7 @@ void AddCourse::on_submitButtonName_clicked()
 
     addColToTableView(searchString,row-1);
     name = searchString;
+    ui->lineEdit_name->clear();
 }
 
 
@@ -182,9 +184,17 @@ void AddCourse::on_submitButtonDetails_clicked()
     }
     if(col==5){
         ui->label_details->setText("Add Photo:");
-        cgpa = searchString;
+        cgpa = (searchString);
         ui->lineEdit_details->clear();
         ui->lineEdit_details->hide();
+        QSqlQuery query_insert;
+
+        QString query_string2 = QString("INSERT INTO %1 (id,name,semester,department,cgpa,photo) VALUES (:id,:name,:semester,:department,:cgpa,:photo)").arg(table_name);
+            //QFile* imageFile=new QFile(":/logo.jpeg");
+            //imageFile->open(QIODevice::ReadOnly);
+            //image_bytes=imageFile->readAll();
+            //imageFile->close();
+
 
         QString fileName = QFileDialog::getOpenFileName(this, tr("Open Image")); //Use QFile tomorroiw here
         if (!fileName.isEmpty()) {
@@ -199,6 +209,58 @@ void AddCourse::on_submitButtonDetails_clicked()
             QPixmap::fromImage(tempImage).save(&buffer,"JPG");
             //tempImage.save(&buffer);
         }
+        //qDebug()<<"Image bytes are: "<<image_bytes;
+        QString photo_data = QString((image_bytes.toBase64()));
+        //qDebug()<<"Photo data is: "<<photo_data;
+        query_insert.prepare(query_string2);
+
+        query_insert.bindValue(":id",id.toInt());
+        query_insert.bindValue(":name",name);
+        query_insert.bindValue(":semester",semester);
+        query_insert.bindValue(":department",department);
+        query_insert.bindValue(":cgpa",cgpa.toFloat());//Getting truncated. Fix this
+        query_insert.bindValue(":photo",photo_data);
+        if(!query_insert.exec()){
+            qDebug()<<query_insert.lastError().text();
+            //show a message using this error in case somebody leaves a field blank
+        }
+        QString query_string_readback = QString("SELECT photo from %1").arg(table_name);
+        if(!query_insert.exec(query_string_readback)){
+            qDebug()<<query_insert.lastError().text();
+        }
+        else{
+            query_insert.last();//what if we change it to last to display latest image?Submit Button, auto clearing and
+            //Deletion from table is also problematic
+            QByteArray outByteArray = query_insert.value(0).toByteArray();
+            qDebug()<<"Data from database: "<<QByteArray::fromBase64(outByteArray);
+            QPixmap outPixmap=QPixmap();
+            outPixmap.loadFromData(QByteArray::fromBase64(outByteArray));
+            QLabel *myLabel = new QLabel(this);
+            myLabel->setWindowFlags(Qt::Window);
+            myLabel->setPixmap(outPixmap);
+            myLabel->show();
+        }
+        QString query_string_readback2 = QString("SELECT name from %1").arg(table_name);
+        if(!query_insert.exec(query_string_readback2)){
+            qDebug()<<query_insert.lastError().text();
+        }
+        else{
+            query_insert.last();
+            qDebug()<<"Name is: "<<query_insert.value(0).toString();
+        }
+//        QString fileName = QFileDialog::getOpenFileName(this, tr("Open Image")); //Use QFile tomorroiw here
+//        if (!fileName.isEmpty()) {
+//            QImage tempImage(fileName);
+//            if (tempImage.isNull()) {
+//                QMessageBox::information(this, tr("Load Warning"), tr("Cannot load %1.").arg(fileName));
+//                return;
+//            }
+//            //QPixmap mypix(fileName);
+//            QBuffer buffer(&image_bytes);
+//            buffer.open(QIODevice::WriteOnly);
+//            QPixmap::fromImage(tempImage).save(&buffer,"JPG");
+//            //tempImage.save(&buffer);
+//        }
 //        QFile* imageFile=new QFile(":/logo.jpeg");
 //        imageFile->open(QIODevice::ReadOnly);
 //        image_bytes=imageFile->readAll();
@@ -206,23 +268,24 @@ void AddCourse::on_submitButtonDetails_clicked()
 //        delete imageFile;
     }
     if(col == 6){
-        QSqlQuery query;
-        qDebug()<<"Image bytes are: "<<image_bytes;
-        QString photo_data = QString((image_bytes.toBase64()));
-        qDebug()<<"Photo data is: "<<photo_data;
-        QString query_string = QString("INSERT INTO %1 (id,name,semester,department,cgpa,photo) VALUES (%2,%3,%4,%5,%6,%7)").arg(table_name).arg(id).arg(name).arg(semester).arg(department).arg(cgpa).arg(photo_data);
-        query.exec(query_string);
-        //"You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'Nawaz,5,Computer,2.81,)' at line 1 QMYSQL: Unable to execute query"
-        //Check from MYSQL db tomorrow what is being entered. Also print photo_data
-        //Issue resolved with photodata. Need to see how to read it from file.
-         //But mysql query is still a problem and unable to read QByteArray converted to base 64. Check that too.
-        //Read from file successfully. Need to fix mysql error in query
-        if(!query.exec()){
-            qDebug()<<query.lastError().text();
-        }
-        else{
-            qDebug()<<query.result();
-        }
+//        QSqlQuery query;
+//        qDebug()<<"Image bytes are: "<<image_bytes;
+//        QString photo_data = QString((image_bytes.toBase64()));
+//        qDebug()<<"Photo data is: "<<photo_data;
+//        QString query_string = QString("INSERT INTO %1 (id,name,semester,department,cgpa,photo) VALUES (%2,%3,%4,%5,%6,:%7)").arg(table_name).arg(id).arg(name).arg(semester).arg(department).arg(cgpa).arg(photo_data);
+//        query.exec(query_string);
+//        //"You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'Nawaz,5,Computer,2.81,)' at line 1 QMYSQL: Unable to execute query"
+//        //Check from MYSQL db tomorrow what is being entered. Also print photo_data
+//        //Issue resolved with photodata. Need to see how to read it from file.
+//         //But mysql query is still a problem and unable to read QByteArray converted to base 64. Check that too.
+//        //Read from file successfully. Need to fix mysql error in query
+//        if(!query.exec()){
+//            qDebug()<<query.lastError().text();
+//        }
+//        else{
+//            qDebug()<<query.result();
+//        }
+
         ui->label_details->setText("Semester:");
         ui->lineEdit_details->show();
         ui->lineEdit_details->clear();
@@ -243,12 +306,82 @@ void AddCourse::setTitle(){
     table_name.replace(" ","_");
     qDebug()<<table_name;
     //also add a popup if someone adds an ampersand
-    QString query_string = QString("CREATE TABLE IF NOT EXISTS %1(id INT NOT NULL, name VARCHAR(200) NOT NULL, semester VARCHAR(200) NOT NULL, department VARCHAR(200) NOT NULL, cgpa DECIMAL NOT NULL, photo LONGBLOB NOT NULL)").arg(table_name);
+    //QString temp_table ="temp_table";
+    QString query_string = QString("CREATE TABLE IF NOT EXISTS %1(id INT NOT NULL, name VARCHAR(200) NOT NULL, semester VARCHAR(200) NOT NULL, department VARCHAR(200) NOT NULL, cgpa DECIMAL NOT NULL, photo LONGBLOB)").arg(table_name);
     query_create.exec(query_string);
-    if(!query_create.exec()){
-        qDebug()<<query_create.lastError().text();
-        //show a message using this error in case somebody leaves a field blank
-    }
+        if(!query_create.exec()){
+            qDebug()<<query_create.lastError().text();
+            //show a message using this error in case somebody leaves a field blank
+        }
+//        QSqlQuery query_insert;
+//        QString name_t = "meraj";
+//        QString sem_t = "4th";
+//        QString dept_t = "Elec";
+//        QString query_string2 = QString("INSERT INTO %1 (id,name,semester,department,cgpa,photo) VALUES (:id,:name,:semester,:department,:cgpa,:photo)").arg(temp_table);
+//                //QFile* imageFile=new QFile(":/logo.jpeg");
+//                //imageFile->open(QIODevice::ReadOnly);
+//                //image_bytes=imageFile->readAll();
+//                //imageFile->close();
+
+
+//        QString fileName = QFileDialog::getOpenFileName(this, tr("Open Image")); //Use QFile tomorroiw here
+//        if (!fileName.isEmpty()) {
+//            QImage tempImage(fileName);
+//            if (tempImage.isNull()) {
+//            QMessageBox::information(this, tr("Load Warning"), tr("Cannot load %1.").arg(fileName));
+//            return;
+//            }
+//            //QPixmap mypix(fileName);
+//            QBuffer buffer(&image_bytes);
+//            buffer.open(QIODevice::WriteOnly);
+//            QPixmap::fromImage(tempImage).save(&buffer,"JPG");
+//            //tempImage.save(&buffer);
+//        }
+//        //qDebug()<<"Image bytes are: "<<image_bytes;
+//        QString photo_data = QString((image_bytes.toBase64()));
+//        //qDebug()<<"Photo data is: "<<photo_data;
+//        query_insert.prepare(query_string2);
+
+//        query_insert.bindValue(":id",1002);
+//                    query_insert.bindValue(":name",name_t);
+//                    query_insert.bindValue(":semester",sem_t);
+//                    query_insert.bindValue(":department",dept_t);
+//                    query_insert.bindValue(":cgpa",3.20);
+//                    query_insert.bindValue(":photo",photo_data);
+//            if(!query_insert.exec()){
+//                qDebug()<<query_insert.lastError().text();
+//                //show a message using this error in case somebody leaves a field blank
+//            }
+//           QString query_string_readback = QString("SELECT photo from %1").arg(temp_table);
+//            if(!query_insert.exec(query_string_readback)){
+//                qDebug()<<query_insert.lastError().text();
+//            }
+//            else{
+//                query_insert.first();
+//                QByteArray outByteArray = query_insert.value(0).toByteArray();
+//                qDebug()<<"Data from database: "<<QByteArray::fromBase64(outByteArray);
+//                QPixmap outPixmap=QPixmap();
+//                outPixmap.loadFromData(QByteArray::fromBase64(outByteArray));
+//                QLabel *myLabel = new QLabel(this);
+//                myLabel->setWindowFlags(Qt::Window);
+//                myLabel->setPixmap(outPixmap);
+//                myLabel->show();
+//            }
+//            QString query_string_readback2 = QString("SELECT name from %1").arg(temp_table);
+//            if(!query_insert.exec(query_string_readback2)){
+//                qDebug()<<query_insert.lastError().text();
+//            }
+//            else{
+//            query_insert.first();
+//                qDebug()<<"Name is: "<<query_insert.value(0).toString();
+//            }
+            //image inserted successfully. Need to read it back to see if it was saved correctly
+   // QString query_string = QString("CREATE TABLE IF NOT EXISTS %1(id INT NOT NULL, name VARCHAR(200) NOT NULL, semester VARCHAR(200) NOT NULL, department VARCHAR(200) NOT NULL, cgpa DECIMAL NOT NULL, photo BLOB NOT NULL)").arg(table_name);
+//    query_create.exec(query_string);
+//    if(!query_create.exec()){
+//        qDebug()<<query_create.lastError().text();
+//        //show a message using this error in case somebody leaves a field blank
+//    }
 
       //    QSqlQuery query;
     //        query.exec("DELETE FROM employee WHERE id = 1001");
@@ -282,12 +415,19 @@ void AddCourse::on_doneButton_clicked()
     ui->lineEdit_ID->clear();
     ui->lineEdit_name->clear();
     ui->lineEdit_details->clear();
+    qDebug()<<"Row count is: "<<row;
     for(int i=0;i<row;i++){
         for(int j=0;j<5;j++){
-            model->removeRows(i,j,QModelIndex());
+            model->removeRows(i,1,QModelIndex());
         }
     }
+//    QModelIndexList indexes= ui->tableView->selectionModel()->selectedRows();
+//    while(!indexes.isEmpty()){
+//            model->removeRows(indexes.last().row(),1);
+//            indexes.removeLast();
+//    }
     col = 0;
+    row = 0;
     ui->doneButton->setDisabled(true);
     QMessageBox::information(
         this,
