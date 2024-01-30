@@ -22,7 +22,7 @@ public:
     QString name = "";
     QString semester = "";
     QString department = "";
-    QString cgpa = "";
+    QString cgpa="";
     QByteArray image_bytes;
     int col = 0;
        int row = 0;
