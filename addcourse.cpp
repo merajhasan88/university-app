@@ -192,7 +192,7 @@ void AddCourse::on_submitButtonDetails_clicked()
     }
     if(col==6){
         QSqlQuery query_insert;
-
+        ui->submitButtonDetails->setText("Submit");
         QString query_string2 = QString("INSERT INTO %1 (id,name,semester,department,cgpa,photo) VALUES (:id,:name,:semester,:department,:cgpa,:photo)").arg(table_name);
             //QFile* imageFile=new QFile(":/logo.jpeg");
             //imageFile->open(QIODevice::ReadOnly);
@@ -294,6 +294,7 @@ void AddCourse::on_submitButtonDetails_clicked()
         ui->lineEdit_details->show();
         ui->lineEdit_details->clear();
         ui->doneButton->setDisabled(false);
+
         QMessageBox::information(
             this,
             tr("System:"),
