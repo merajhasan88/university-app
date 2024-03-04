@@ -176,6 +176,7 @@ void AddCourse::on_submitButtonDetails_clicked()
     if(col == 3){
         ui->label_details->setText("Department:");
         semester= searchString;
+        ui->lineEdit_details->clear();
     }
     if(col == 4){
         ui->label_details->setText("CGPA:");
@@ -187,6 +188,9 @@ void AddCourse::on_submitButtonDetails_clicked()
         cgpa = (searchString);
         ui->lineEdit_details->clear();
         ui->lineEdit_details->hide();
+        ui->submitButtonDetails->setText("Add a photo");
+    }
+    if(col==6){
         QSqlQuery query_insert;
 
         QString query_string2 = QString("INSERT INTO %1 (id,name,semester,department,cgpa,photo) VALUES (:id,:name,:semester,:department,:cgpa,:photo)").arg(table_name);
@@ -267,7 +271,7 @@ void AddCourse::on_submitButtonDetails_clicked()
 //        imageFile->close();
 //        delete imageFile;
     }
-    if(col == 6){
+    if(col == 7){
 //        QSqlQuery query;
 //        qDebug()<<"Image bytes are: "<<image_bytes;
 //        QString photo_data = QString((image_bytes.toBase64()));
