@@ -86,6 +86,12 @@ AddCourse::AddCourse(QWidget *parent) :
 
     ui->graphicsView->setScene(scene);
     //ui->graphicsView->show();
+    ui->lineEdit_ID->setDisabled(true);
+    ui->lineEdit_name->setDisabled(true);
+    ui->lineEdit_details->setDisabled(true);
+    ui->submitButtonID->setDisabled(true);
+    ui->submitButtonName->setDisabled(true);
+    ui->submitButtonDetails->setDisabled(true);
 }
 
 AddCourse::~AddCourse()
@@ -141,6 +147,13 @@ void AddCourse::on_submitButtonID_clicked()
 {
 
     QString searchString = ui->lineEdit_ID->text();
+    QRegExp re("\\d*");
+    if(!re.exactMatch(searchString)){
+        qDebug()<<"ID contains alphabet!";
+        QMessageBox::information(this, tr("ID cannot have alphabets"), tr("Try again"));
+        ui->lineEdit_ID->clear();
+        return;
+    }
     QTextStream out(stdout);
     //QStandardItem *item = new QStandardItem(searchString);
     row++;
@@ -305,6 +318,9 @@ void AddCourse::on_submitButtonDetails_clicked()
 }
 
 void AddCourse::setTitle(){
+    ui->lineEdit_ID->setDisabled(false);
+    ui->submitButtonID->setDisabled(false);
+    //put check for empty logic here. Cannot have any numbers. Name shouldn't be longer than 20 characters
     QSqlQuery query_create;
     //parse the string here. Fill spaces with underscore and everything in toLower
     table_name =(ui->lineEdit->text()).toLower();
