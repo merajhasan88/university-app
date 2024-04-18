@@ -101,7 +101,7 @@ AddCourse::~AddCourse()
 
 void AddCourse::on_submitButton_clicked()
 {
-    QString searchString = ui->lineEdit->text();
+    //QString searchString = ui->lineEdit->text();
 }
 
 QTextStream& qStdOut2()
@@ -148,12 +148,22 @@ void AddCourse::on_submitButtonID_clicked()
 
     QString searchString = ui->lineEdit_ID->text();
     QRegExp re("\\d*");
-    if(!re.exactMatch(searchString)){
+    if(!re.exactMatch(searchString) ){
+
+
         qDebug()<<"ID contains alphabet!";
         QMessageBox::information(this, tr("ID cannot have alphabets"), tr("Try again"));
         ui->lineEdit_ID->clear();
         return;
+
     }
+    if(searchString.length()>8 || searchString.length()<3){
+        qDebug()<<"ID is too short or too long!";
+        QMessageBox::information(this, tr("ID cannot be less than 3 digits and cannot be more than 8 digits"), tr("Try again"));
+        ui->lineEdit_ID->clear();
+        return;
+    }
+
     QTextStream out(stdout);
     //QStandardItem *item = new QStandardItem(searchString);
     row++;
@@ -165,18 +175,42 @@ void AddCourse::on_submitButtonID_clicked()
     id = searchString;
     ui->lineEdit_ID->clear();
     //col++;
-
+    ui->lineEdit_ID->setDisabled(true);
+    ui->submitButtonID->setDisabled(true);
+    ui->lineEdit_name->setDisabled(false);
+    ui->submitButtonName->setDisabled(false);
 }
 
 
 void AddCourse::on_submitButtonName_clicked()
 {
+
     QString searchString = ui->lineEdit_name->text();
+    QRegExp re("[^0-9]+");
+    const auto&& parts = searchString.split(re,Qt::SkipEmptyParts);
+    //qDebug()<<"Name has these numerical parts:"<<parts;
+    if(!parts.isEmpty()){
+    //if(re.exactMatch(searchString)){
+        qDebug()<<"Name contains numericals!";
+        QMessageBox::information(this, tr("Name cannot have numericals"), tr("Try again"));
+        ui->lineEdit_name->clear();
+        return;
+    }
+    if(searchString.length()>20 || searchString.length()<5){
+        qDebug()<<"Name is too short or too long!";
+        QMessageBox::information(this, tr("Name cannot be less than 5 letters and cannot be more than 20 letters"), tr("Try again"));
+        ui->lineEdit_name->clear();
+        return;
+    }
     QTextStream out(stdout);
 
     addColToTableView(searchString,row-1);
     name = searchString;
     ui->lineEdit_name->clear();
+    ui->lineEdit_name->setDisabled(true);
+    ui->submitButtonName->setDisabled(true);
+    ui->lineEdit_details->setDisabled(false);
+    ui->submitButtonDetails->setDisabled(false);
 }
 
 
@@ -184,23 +218,76 @@ void AddCourse::on_submitButtonDetails_clicked()
 {
     QString searchString = ui->lineEdit_details->text();
     QTextStream out(stdout);
-
-    addColToTableView(searchString,row-1);
+    col++;
+qDebug()<<"Col is:"<<col;
+//    addColToTableView(searchString,row-1);
     if(col == 3){
+
+        //This regexp is wrong
+        QRegExp re("^[0-9]");
+        if(!re.exactMatch(searchString)){
+            qDebug()<<"Semester has no numerical!";
+            QMessageBox::information(this, tr("Semester needs numerical"), tr("Try again"));
+            ui->lineEdit_details->clear();
+            col--;
+            return;
+        }
+        if(searchString.length()>5 || searchString.length()<2){
+            qDebug()<<"Semester name is too short or too long!";
+            QMessageBox::information(this, tr("Semester name cannot be less than 2 letters and cannot be more than 5 letters"), tr("Try again"));
+            ui->lineEdit_details->clear();
+            col--;
+            return;
+        }
+        addColToTableView(searchString,row-1);
         ui->label_details->setText("Department:");
         semester= searchString;
         ui->lineEdit_details->clear();
     }
     if(col == 4){
+
+        QRegExp re("\\d*");
+        if(re.exactMatch(searchString)){
+            qDebug()<<"Department contains numerical!";
+            QMessageBox::information(this, tr("Department cannot have numerical"), tr("Try again"));
+            ui->lineEdit_details->clear();
+            col--;
+            return;
+        }
+        if(searchString.length()>10 || searchString.length()<5){
+            qDebug()<<"Department name is too short or too long!";
+            QMessageBox::information(this, tr("Department name cannot be less than 5 digits and cannot be more than 10 digits"), tr("Try again"));
+            ui->lineEdit_details->clear();
+            col--;
+            return;
+        }
+        addColToTableView(searchString,row-1);
         ui->label_details->setText("CGPA:");
         department = searchString;
         ui->lineEdit_details->clear();
     }
     if(col==5){
-        ui->label_details->setText("Add Photo:");
-        cgpa = (searchString);
+
+        QRegExp re("^([A-Za-z]|[A-Za-z][0-9]*|[0-9]*[A-Za-z])+$");
+        if(re.exactMatch(searchString)){
+            qDebug()<<"CGPA contains alphabet!";
+            QMessageBox::information(this, tr("CGPA cannot have alphabet"), tr("Try again"));
+            ui->lineEdit_details->clear();
+            col--;
+            return;
+        }
+        if(searchString.length()>4 || searchString.length()<2){
+            qDebug()<<"CGPA is too short or too long!";
+            QMessageBox::information(this, tr("CGPA cannot be less than 2 digits and cannot be more than 4 digits"), tr("Try again"));
+            ui->lineEdit_details->clear();
+            col--;
+            return;
+        }
+        addColToTableView(searchString,row-1);
+        cgpa = searchString;
         ui->lineEdit_details->clear();
         ui->lineEdit_details->hide();
+        ui->label_details->setText("Photo:");
         ui->submitButtonDetails->setText("Add a photo");
     }
     if(col==6){
@@ -418,6 +505,7 @@ void AddCourse::setTitle(){
     //        query.exec();
 
     ui->label_title->setText(ui->lineEdit->text());
+        ui->submitButton->setDisabled(true);
 }
 
 void AddCourse::clear_addnewRow(){
