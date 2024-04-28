@@ -68,7 +68,10 @@ AddCourse::AddCourse(QWidget *parent) :
     model->setHeaderData(3,Qt::Horizontal,
                          QObject::tr("Department"));
     model->setHeaderData(4,Qt::Horizontal,
-                         QObject::tr("CGPA"));
+                         QObject::tr("CGPA"));//Add another row for photo here tomorrow
+    model->setHeaderData(5,Qt::Horizontal,
+                         QObject::tr("Photo"));                                           // and check corretc entry into db when
+                                                //data is incorrectly entered
     ui->doneButton->setFixedWidth(50);
     ui->backButton->setFixedWidth(50);
     //ui->backButton->setAttribute(Qt::AlignRight, true);
@@ -78,12 +81,14 @@ AddCourse::AddCourse(QWidget *parent) :
     ui->tableView->horizontalHeader()->setStretchLastSection(true);
     connect(ui->submitButton, SIGNAL( clicked() ), this, SLOT( setTitle()  ) );//this sets title of table
     connect(ui->backButton, SIGNAL(clicked()),this, SLOT(close()));
-
+    connect(push_buttonImage,SIGNAL(clicked()),this,SLOT(openImage()));
+    //connect(ui->tableView, SIGNAL(onImageCellClicked()),this, SLOT(openImage()));
+    ui->tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
     QPixmap image=QPixmap(":/logo.jpeg");
     //QGraphicsScene *scene = new QGraphicsScene(this);
     QGraphicsPixmapItem* item = new QGraphicsPixmapItem(image);
     scene->addItem(item);
-
+    push_buttonImage->hide();
     ui->graphicsView->setScene(scene);
     //ui->graphicsView->show();
     ui->lineEdit_ID->setDisabled(true);
@@ -123,7 +128,7 @@ void AddCourse::addColToTableView(QString name,int row)
     //model->appendRow(row);//also adds a new row
     //model->insertColumn(col,row); //adds new column
     index = model->index(row,col,QModelIndex());
-
+qDebug()<<"Inside col adding function with index"<<index<<"row "<<row<<"and col"<<col;
     model->setData(index,name);
     col++;
 
@@ -142,7 +147,46 @@ void AddCourse::addColToTableView(QString name,int row)
     //        }
     //    }
 }
+void AddCourse::addImageColToTableView(int row)
+{
+    QModelIndex index;
+    //following commented section adds a new row
+    //QStandardItem *item = new QStandardItem(name);
+    //QList<QStandardItem*> data;
+    //data << item;
+    //    QList<QStandardItem*> row;
+    //        row << item;
+    //model->appendRow(item);//adds a new row
+    //model->appendRow(row);//also adds a new row
+    //model->insertColumn(col,row); //adds new column
+    index = model->index(row,col,QModelIndex());
+    qDebug()<<"Inside image adding function with index "<<index<<"row "<<row<<"and col"<<col;
+    //model->setData(index,QString("Image"));
+    //QPushButton *push_buttonImage = new QPushButton(ui->tableView);
+    push_buttonImage->setText("Open Image");
 
+    //push_buttonImage->setWindowFlags(Qt::Widget);
+    ui->tableView->setIndexWidget(index,push_buttonImage);
+    push_buttonImage->show();
+
+    //emit onImageCellClicked();
+    col++;
+
+    //following adds something from line edit to whichever place in table
+    //        index = model->index(0,0,QModelIndex());
+
+    //        model->setData(index,name);
+    //items << item;
+
+    //    for(int i = 0; i < items.size(); i++)
+    //    {
+    //        for(int j = 0; j < 1; j++)
+    //        {
+
+    //            model->setItem(i, j, items.at(i));
+    //        }
+    //    }
+}
 void AddCourse::on_submitButtonID_clicked()
 {
 
@@ -211,6 +255,7 @@ void AddCourse::on_submitButtonName_clicked()
     ui->submitButtonName->setDisabled(true);
     ui->lineEdit_details->setDisabled(false);
     ui->submitButtonDetails->setDisabled(false);
+    col++;
 }
 
 
@@ -218,77 +263,87 @@ void AddCourse::on_submitButtonDetails_clicked()
 {
     QString searchString = ui->lineEdit_details->text();
     QTextStream out(stdout);
-    col++;
+
 qDebug()<<"Col is:"<<col;
 //    addColToTableView(searchString,row-1);
     if(col == 3){
 
         //This regexp is wrong
-        QRegExp re("^[0-9]");
+        QRegExp re("\\d*");
         if(!re.exactMatch(searchString)){
             qDebug()<<"Semester has no numerical!";
             QMessageBox::information(this, tr("Semester needs numerical"), tr("Try again"));
             ui->lineEdit_details->clear();
-            col--;
+            //col--;
             return;
         }
-        if(searchString.length()>5 || searchString.length()<2){
-            qDebug()<<"Semester name is too short or too long!";
-            QMessageBox::information(this, tr("Semester name cannot be less than 2 letters and cannot be more than 5 letters"), tr("Try again"));
+        if(searchString.length()>1){
+            qDebug()<<"Semester name is too long!";
+            QMessageBox::information(this, tr("Semester name cannot be more than 1 digit"), tr("Try again"));
             ui->lineEdit_details->clear();
-            col--;
+            //col--;
             return;
         }
+        col--;
         addColToTableView(searchString,row-1);
         ui->label_details->setText("Department:");
         semester= searchString;
         ui->lineEdit_details->clear();
+        col++;
+        return;
     }
     if(col == 4){
 
-        QRegExp re("\\d*");
-        if(re.exactMatch(searchString)){
+        QRegExp re("[^0-9]+");
+        const auto&& parts = searchString.split(re,Qt::SkipEmptyParts);
+        if(!parts.isEmpty()){
             qDebug()<<"Department contains numerical!";
             QMessageBox::information(this, tr("Department cannot have numerical"), tr("Try again"));
             ui->lineEdit_details->clear();
-            col--;
+            //col--;
             return;
         }
         if(searchString.length()>10 || searchString.length()<5){
             qDebug()<<"Department name is too short or too long!";
             QMessageBox::information(this, tr("Department name cannot be less than 5 digits and cannot be more than 10 digits"), tr("Try again"));
             ui->lineEdit_details->clear();
-            col--;
+            //col--;
             return;
         }
+        col--;
         addColToTableView(searchString,row-1);
         ui->label_details->setText("CGPA:");
         department = searchString;
         ui->lineEdit_details->clear();
+        col++;
+        return;
     }
     if(col==5){
 
-        QRegExp re("^([A-Za-z]|[A-Za-z][0-9]*|[0-9]*[A-Za-z])+$");
-        if(re.exactMatch(searchString)){
-            qDebug()<<"CGPA contains alphabet!";
-            QMessageBox::information(this, tr("CGPA cannot have alphabet"), tr("Try again"));
+        QRegExp re("\\d+\\.\\d+");
+        if(!re.exactMatch(searchString)){
+            qDebug()<<"CGPA either contains alphabet or no decimal!";
+            QMessageBox::information(this, tr("CGPA needs decimal value and cannot have alphabet"), tr("Try again"));
             ui->lineEdit_details->clear();
-            col--;
+            //col--;
             return;
         }
         if(searchString.length()>4 || searchString.length()<2){
             qDebug()<<"CGPA is too short or too long!";
             QMessageBox::information(this, tr("CGPA cannot be less than 2 digits and cannot be more than 4 digits"), tr("Try again"));
             ui->lineEdit_details->clear();
-            col--;
+            //col--;
             return;
         }
+        col--;
         addColToTableView(searchString,row-1);
         cgpa = searchString;
         ui->lineEdit_details->clear();
         ui->lineEdit_details->hide();
         ui->label_details->setText("Photo:");
         ui->submitButtonDetails->setText("Add a photo");
+        col++;
+        return;
     }
     if(col==6){
         QSqlQuery query_insert;
@@ -336,7 +391,7 @@ qDebug()<<"Col is:"<<col;
             query_insert.last();//what if we change it to last to display latest image?Submit Button, auto clearing and
             //Deletion from table is also problematic
             QByteArray outByteArray = query_insert.value(0).toByteArray();
-            qDebug()<<"Data from database: "<<QByteArray::fromBase64(outByteArray);
+            //qDebug()<<"Data from database: "<<QByteArray::fromBase64(outByteArray);
             QPixmap outPixmap=QPixmap();
             outPixmap.loadFromData(QByteArray::fromBase64(outByteArray));
             QLabel *myLabel = new QLabel(this);
@@ -352,6 +407,8 @@ qDebug()<<"Col is:"<<col;
             query_insert.last();
             qDebug()<<"Name is: "<<query_insert.value(0).toString();
         }
+        col++;
+        return;
 //        QString fileName = QFileDialog::getOpenFileName(this, tr("Open Image")); //Use QFile tomorroiw here
 //        if (!fileName.isEmpty()) {
 //            QImage tempImage(fileName);
@@ -389,11 +446,16 @@ qDebug()<<"Col is:"<<col;
 //        else{
 //            qDebug()<<query.result();
 //        }
+        col--;
+        col--;
+        addImageColToTableView(row-1);
 
         ui->label_details->setText("Semester:");
-        ui->lineEdit_details->show();
-        ui->lineEdit_details->clear();
+        qDebug()<<"Col after image submission is "<<col;
+        ui->submitButtonDetails->setDisabled(true);
         ui->doneButton->setDisabled(false);
+        ui->submitButtonID->setDisabled(false);
+        ui->lineEdit_ID->setDisabled(false);
 
         QMessageBox::information(
             this,
@@ -512,11 +574,34 @@ void AddCourse::clear_addnewRow(){
     ui->lineEdit_ID->clear();
     ui->lineEdit_name->clear();
     ui->lineEdit_details->clear();
+    ui->lineEdit_details->show();
+    ui->lineEdit_details->setDisabled(true);
+    ui->submitButtonDetails->setText("Submit");
+    ui->submitButtonDetails->setDisabled(true);
     col = 0;
 
 }
 
-
+void AddCourse::openImage(){
+    qDebug()<<"openImage() called";
+    QSqlQuery query_insert;
+    QString query_string_readback = QString("SELECT photo from %1").arg(table_name);
+    if(!query_insert.exec(query_string_readback)){
+            qDebug()<<query_insert.lastError().text();
+    }
+    else{
+            query_insert.last();//what if we change it to last to display latest image?Submit Button, auto clearing and
+            //Deletion from table is also problematic
+            QByteArray outByteArray = query_insert.value(0).toByteArray();
+            //qDebug()<<"Data from database: "<<QByteArray::fromBase64(outByteArray);
+            QPixmap outPixmap=QPixmap();
+            outPixmap.loadFromData(QByteArray::fromBase64(outByteArray));
+            QLabel *myLabel = new QLabel(this);
+            myLabel->setWindowFlags(Qt::Window);
+            myLabel->setPixmap(outPixmap);
+            myLabel->show();
+    }
+}
 void AddCourse::on_doneButton_clicked()
 {
     ui->lineEdit->clear();
@@ -524,6 +609,9 @@ void AddCourse::on_doneButton_clicked()
     ui->lineEdit_ID->clear();
     ui->lineEdit_name->clear();
     ui->lineEdit_details->clear();
+    ui->submitButton->setDisabled(false);
+    ui->submitButtonID->setDisabled(false);
+    ui->lineEdit_ID->setDisabled(false);
     qDebug()<<"Row count is: "<<row;
     for(int i=0;i<row;i++){
         for(int j=0;j<5;j++){
@@ -548,6 +636,8 @@ void AddCourse::closeEvent(QCloseEvent *event){
     if(QMessageBox::question(this,tr("System:"),tr("Are you sure you want to close this window?"),QMessageBox::Yes,QMessageBox::No )==QMessageBox::Yes){
         emit on_closeButtonClicked();
         event->accept();
+        model->clear();
+        ui->lineEdit->clear();
     }
     else {
         event->ignore();
