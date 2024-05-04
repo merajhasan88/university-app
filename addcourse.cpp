@@ -81,14 +81,14 @@ AddCourse::AddCourse(QWidget *parent) :
     ui->tableView->horizontalHeader()->setStretchLastSection(true);
     connect(ui->submitButton, SIGNAL( clicked() ), this, SLOT( setTitle()  ) );//this sets title of table
     connect(ui->backButton, SIGNAL(clicked()),this, SLOT(close()));
-    connect(push_buttonImage,SIGNAL(clicked()),this,SLOT(openImage()));
+    //connect(push_buttonImage,SIGNAL(clicked()),this,SLOT(openImage()));
     //connect(ui->tableView, SIGNAL(onImageCellClicked()),this, SLOT(openImage()));
     ui->tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
     QPixmap image=QPixmap(":/logo.jpeg");
     //QGraphicsScene *scene = new QGraphicsScene(this);
     QGraphicsPixmapItem* item = new QGraphicsPixmapItem(image);
     scene->addItem(item);
-    push_buttonImage->hide();
+    //push_buttonImage->hide();
     ui->graphicsView->setScene(scene);
     //ui->graphicsView->show();
     ui->lineEdit_ID->setDisabled(true);
@@ -163,8 +163,42 @@ void AddCourse::addImageColToTableView(int row)
     qDebug()<<"Inside image adding function with index "<<index<<"row "<<row<<"and col"<<col;
     //model->setData(index,QString("Image"));
     //QPushButton *push_buttonImage = new QPushButton(ui->tableView);
-    push_buttonImage->setText("Open Image");
 
+    QPushButton *push_buttonImage = new QPushButton(this);
+    push_buttonImage->setText("Open Image");
+    //qDebug()<<"ID of this newly created button is"
+    //connect(push_buttonImage,SIGNAL(clicked()),this,SLOT(openImage(QString)));
+    connect(push_buttonImage,&QPushButton::clicked,[row,index, this](){
+        QStandardItem *item=model->itemFromIndex(index);
+//        QVariant itemdata= item->data(Qt::UserRole + 2);
+//        QVariant indexdata = index.data(Qt::UserRole + 2);
+//        QVariant modeldata = model->data(index,Qt::UserRole+2);
+        QList<QStandardItem*> data;
+       // QList<QVariant> data;
+        QVariant itemtext = item->text();
+        data << item;
+        QVariant sibling =index.siblingAtColumn(0).data(Qt::DisplayRole);
+        //data<<model->data(index).value<QStandardItem*>();
+        qDebug()<<"openImage() called with ID:"<<data<<" and"<<index<<" and"<<sibling.toInt();
+            //indexdata<<" and"<<itemdata<<" and"<<modeldata<<" and"<<itemtext;
+        QSqlQuery query_insert;
+        QString query_string_readback = QString("SELECT photo from %1 where id=%2").arg(table_name).arg(sibling.toInt());
+        if(!query_insert.exec(query_string_readback)){
+            qDebug()<<query_insert.lastError().text();
+        }
+        else{
+            query_insert.last();//what if we change it to last to display latest image?Submit Button, auto clearing and
+            //Deletion from table is also problematic
+            QByteArray outByteArray = query_insert.value(0).toByteArray();
+            //qDebug()<<"Data from database: "<<QByteArray::fromBase64(outByteArray);
+            QPixmap outPixmap=QPixmap();
+            outPixmap.loadFromData(QByteArray::fromBase64(outByteArray));
+            QLabel *myLabel = new QLabel(this);
+            myLabel->setWindowFlags(Qt::Window);
+            myLabel->setPixmap(outPixmap);
+            myLabel->show();
+        }
+    });
     //push_buttonImage->setWindowFlags(Qt::Widget);
     ui->tableView->setIndexWidget(index,push_buttonImage);
     push_buttonImage->show();
@@ -194,7 +228,7 @@ void AddCourse::on_submitButtonID_clicked()
     QRegExp re("\\d*");
     if(!re.exactMatch(searchString) ){
 
-
+//also check that ID should not be a duplicate
         qDebug()<<"ID contains alphabet!";
         QMessageBox::information(this, tr("ID cannot have alphabets"), tr("Try again"));
         ui->lineEdit_ID->clear();
@@ -582,8 +616,8 @@ void AddCourse::clear_addnewRow(){
 
 }
 
-void AddCourse::openImage(){
-    qDebug()<<"openImage() called";
+void AddCourse::openImage(QString id_clicked){
+    qDebug()<<"openImage() called with ID:"<<id_clicked;
     QSqlQuery query_insert;
     QString query_string_readback = QString("SELECT photo from %1").arg(table_name);
     if(!query_insert.exec(query_string_readback)){
@@ -610,8 +644,8 @@ void AddCourse::on_doneButton_clicked()
     ui->lineEdit_name->clear();
     ui->lineEdit_details->clear();
     ui->submitButton->setDisabled(false);
-    ui->submitButtonID->setDisabled(false);
-    ui->lineEdit_ID->setDisabled(false);
+    ui->submitButtonID->setDisabled(true);
+    ui->lineEdit_ID->setDisabled(true);
     qDebug()<<"Row count is: "<<row;
     for(int i=0;i<row;i++){
         for(int j=0;j<5;j++){
