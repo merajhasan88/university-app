@@ -17,7 +17,7 @@ class AddCourse : public QMainWindow
     Q_OBJECT
 
 public:
-    QPushButton *push_buttonImage = new QPushButton(this);
+//    QPushButton *push_buttonImage = new QPushButton(this);
     QString table_name="";
     QString id = "";
     QString name = "";
@@ -37,7 +37,7 @@ signals:
     void onImageCellClicked();
 public slots:
        void closeEvent(QCloseEvent *event);
-    void openImage();
+    void openImage(QString);
 private slots:
     void on_submitButton_clicked();
     void addColToTableView(QString,int);
